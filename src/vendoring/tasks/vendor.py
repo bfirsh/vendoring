@@ -59,6 +59,11 @@ def rewrite_file_imports(
         text = re.sub(pattern, substitution, text)
 
     for lib in vendored_libs:
+        # convert 'import xxx.yyy' to 'import namespace.xxx.yyy' and rewrite all references in the code
+        for match in re.finditer(rf"^\s*import {lib}\.([\.\w]+)$", text, re.MULTILINE):
+            text = text.replace(f"{lib}.{match.group(1)}", f"{namespace}.{lib}.{match.group(1)}")
+
+
         text = re.sub(
             rf"(\n\s*|^)import {lib}(\n\s*)",
             rf"\1from {namespace} import {lib}\2",
